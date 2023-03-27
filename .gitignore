@@ -1,9 +1,13 @@
 # ignore all files
-*
+/*
 
 # these files don't ignore
 !*.gitignore
 !README.md
 !LICENSE
-!*.vhd
-!*.v
+
+!/PWM_General.srcs
+ /PWM_General.srcs/*
+!/PWM_General.srcs/sources_1
+ /PWM_General.srcs/sources_1/*
+!/PWM_General.srcs/sources_1/new *.vhd
