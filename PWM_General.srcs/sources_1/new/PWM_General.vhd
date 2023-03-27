@@ -63,7 +63,7 @@ end PWM_General;
 
 architecture Behavioral of PWM_General is
     -- 定义常量
-    constant c_ValMax   :   integer := 50;  -- 设定s_PwmCR和s_PwmCNT的最大
+    constant c_ValMax   :   integer := 50_000_000;  -- 设定s_PwmCR和s_PwmCNT的最大
     -- 定义信号变量
     signal  s_PwmParamUpdateFlagSync : std_logic := '0'; --i_PwmParamUpdateFlag的同步信号
     signal  s_PwmParamUpdate :   std_logic := '0';            -- 0 ->参数不会生效，使用原参数输出或者无输出(首次运行)；
