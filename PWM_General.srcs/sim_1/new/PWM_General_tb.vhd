@@ -39,7 +39,6 @@ architecture Behavioral of PWM_General_tb is
 component PWM_General is
     Generic (
         SYS_CLK_VAL_HZ      :   integer := 40_000_000;  -- 系统主输入时钟值 单位：Hz
-        WORK_MODE           :   std_logic := '0';
         PWM_CH_Polarity     :   std_logic := '1';       -- PWM输出通道输出时，占空比(PWM模式CNT<CR)-对应关系: 1->高,0->低
         PWM_CH_Idle_State   :   std_logic := '0'        -- PWM处于空闲时，通道的电平状态
     );
@@ -69,7 +68,8 @@ end component;
     signal  pwmFreq :   integer := 0;
     signal  pwmComp :   integer := 0;
     signal  cruie   :   std_logic;
-    type t_fsm  is (s1,s2,s3,s4,s5);
+    signal cnt : integer := 0;
+    type t_fsm  is (s1,s2,s3,s4,s5,s6,s7);
     signal s_fsm : t_fsm := s1;
 begin
     clk: process
@@ -125,8 +125,8 @@ begin
             case s_fsm is
                 when s1 =>
                     EN <= '1';
-                    pwmFreq <= 1_000_000;
-                    pwmComp <= 25;
+                    pwmFreq <= 10000;--5_000_00;
+                    pwmComp <= 4800;
                     paramSet <= '1';
                     s_fsm <= s2;
                 when s2 =>
@@ -142,15 +142,41 @@ begin
 --                            pwmCOmp <= pwmComp;
 --                        end if;
                         -- 比较模式
-                        pwmComp <= 10;
+                        if (pwmComp /= 0) then
+                            pwmComp <= pwmComp - 200;
+                            paramSet <= '1';
+                            s_fsm <= s3;
+                        else
+                            pwmComp <= pwmComp;
+                            s_fsm <= s5;
+                        --EN <= '0';
+                        end if;
                         -- 比较模式结束
-                        paramSet <= '1';
-                        s_fsm <= s4;
+
                     end if;
                 when s4 =>
                     s_fsm <= s3;
                     paramSet <= '0';
+                when s5 =>
+                    if (cnt = 800) then
+                        cnt <= 0;
+                        pwmComp <= 1000;
+                        paramSet <= '1';
+                        s_fsm <= s6;
+                    else
+                        cnt <= cnt + 1;
+                    end if;
+                when s6 =>
+                    if (cnt = 20000) then
+                        cnt <= 0;
+                        pwmComp <= 4000;
+                        paramSet <= '1';
+                        s_fsm <= s7;
+                    else
+                        cnt <= cnt + 1;
+                    end if;
                 when others =>
+                paramSet <= '0';
             end case;
         end if;
     end process;
@@ -159,7 +185,6 @@ begin
     PWM_Module:  PWM_General 
     Generic map (
         SYS_CLK_VAL_HZ      => 50_000_000,  -- 50MHz  系统输入时钟值 单位：Hz
-        WORK_MODE           => '0', -- '0'->PWM模式，'1'->输出比较模式
         PWM_CH_Polarity     => '1',   -- PWM输出通道输出时，占空比对应关系: 1->高,0->低
         PWM_CH_Idle_State   => '0'    -- PWM处于空闲时，通道的电平状态
     )
